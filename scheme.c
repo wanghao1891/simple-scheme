@@ -15,9 +15,78 @@ struct AST {
   OPERAND operand;
 };
 
+typedef struct ELEMENT {
+  int type; //0, start; 1, number; 2, node
+  int number;
+  struct NODE *node;
+  struct ELEMENT *next;
+} ELEMENT;
+
+//typedef struct NODE {
+//  int type; //1, operator; 2, number; 3, node
+//  char operator; //+ - * /
+//  int number;
+//  NODE node;
+//  NODE *next;
+//} NODE;
+
+typedef struct NODE {
+  char operator; //+ - * /
+  ELEMENT *element;
+} NODE;
+
 int add_operand(OPERAND *current_operand);
 
-char *read(FILE *in) {
+//(+ 1 (+ 2 3))
+NODE *parse(FILE *in, ELEMENT *previous_element) {
+  int c;
+  int n = 0;
+  NODE *current_node = malloc(sizeof(NODE));
+  ELEMENT *current_element;
+
+  while((c = getc(in)) != 10) {
+    printf("c is %c\n", c);
+    if(c != ' ') {
+      if(n == 0) {
+        current_node->operator = c;
+      } else {
+        current_element = malloc(sizeof(ELEMENT));
+        if(c == '(') {
+          NODE *child = parse(in, current_element);
+          current_element->type = 1;
+          current_element->node = child;
+        } else {
+          current_element->type = 0;
+          current_element->number = c - '0';
+
+          if(n == 1) {
+            current_node->element = current_element;
+          }
+        }
+
+        if(previous_element != NULL) {
+          previous_element->next = current_element;
+        }
+
+        previous_element = current_element;
+      }
+
+      n = n + 1;
+    } else if(c == ')') {
+      current_element = NULL;
+      break;
+    }
+  }
+
+  printf("the operator of node is %c\n", current_node->operator);
+  if(current_node->element != NULL) {
+    printf("the type of first element of node is %d\n", current_node->element->type);
+  }
+
+  return current_node;
+}
+
+int read(FILE *in) {
   struct AST ast;
   int c;
   char exp[100];
@@ -66,8 +135,7 @@ char *read(FILE *in) {
   //printf("next operand is %d\n", current_operand->next->value);
   //printf("the result is %d\n", add_operand(current_operand));
   //printf("operator is %c, operand_1 is %d, operand_2 is %d\n", ast.operator, ast.operand_1, ast.operand_2);
-  //printf("The result is %d\n", (int)ast.operand_1 + (int)ast.operand_2);
-  //putc(c, stdout);
+  //printf("The result is %d\n", (int)ast.operand_1 + (int)ast.operand_2);  //putc(c, stdout);
   return 1;
 }
 
@@ -89,12 +157,23 @@ int add_operand(OPERAND *current_operand) {
 }
 
 int main(void) {
-  char* exp;
+  //char* exp;
   while(1) {
     printf("> ");
     //scanf("%s", exp);
     //gets(exp);
-    read(stdin);
+    //read(stdin);
+
+    int c = getc(stdin);
+    printf("c is %c\n", c);
+    if(c == '(') {
+      //ELEMENT *start = malloc(sizeof(ELEMENT));
+      //start->type = 0;
+      NODE * root = parse(stdin, NULL);
+
+      printf("the operator of root node is %c\n", root->operator);
+    }
+
     //printf("You entered: %s\n", exp);
   }
 }
