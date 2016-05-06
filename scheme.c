@@ -46,7 +46,7 @@ NODE *parse(FILE *in, ELEMENT *previous_element) {
   ELEMENT *current_element;
 
   while((c = getc(in)) != 10) {
-    printf("c is %c\n", c);
+    //printf("c is %c\n", c);
     if(c != ' ' && c != ')') {
       if(n == 0) {
         current_node->operator = c;
@@ -57,7 +57,7 @@ NODE *parse(FILE *in, ELEMENT *previous_element) {
           current_element->type = 2;
           current_element->node = child;
         } else {
-          printf("number is %d\n", c - '0');
+          //printf("number is %d\n", c - '0');
           current_element->type = 1;
           current_element->number = c - '0';
 
@@ -81,17 +81,17 @@ NODE *parse(FILE *in, ELEMENT *previous_element) {
     }
   }
 
-  printf("the operator of node is %c\n", current_node->operator);
-  if(current_node->element != NULL) {
-    printf("the type of first element of node is %d\n", current_node->element->type);
-  }
+  //printf("the operator of node is %c\n", current_node->operator);
+  //if(current_node->element != NULL) {
+  //  printf("the type of first element of node is %d\n", current_node->element->type);
+  //}
 
   return current_node;
 }
 
 int add_element(ELEMENT *element) {
-  printf("element is %p\n", element);
-  printf("element type is %d\n", element->type);
+  //printf("element is %p\n", element);
+  //printf("element type is %d\n", element->type);
 
 //  if(element->next == NULL) {
 //    if(element->type == 1) {
@@ -203,14 +203,17 @@ int main(void) {
     //read(stdin);
 
     int c = getc(stdin);
-    printf("c is %c = %d\n", c, c);
+    //printf("c is %c = %d\n", c, c);
     if(c == '(') {
-      //ELEMENT *start = malloc(sizeof(ELEMENT));
-      //start->type = 0;
       NODE * root = parse(stdin, NULL);
       int result = add_element(root->element);
-      printf("result is %d\n", result);
-      printf("the operator of root node is %c\n", root->operator);
+
+      c = getc(stdin);
+      if(c == 10) {
+        printf("%d\n", result);
+      }
+      //printf("result is %d\n", result);
+      //printf("the operator of root node is %c\n", root->operator);
     }
 
     //printf("You entered: %s\n", exp);
