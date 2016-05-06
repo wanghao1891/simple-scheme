@@ -134,6 +134,8 @@ int compute(char operator, int operand1, int operand2) {
     return operand1 * operand2;
   case '/':
     return operand1 / operand2;
+  default:
+    return 0;
   }
 }
 
@@ -142,15 +144,21 @@ int compute_node_element(ELEMENT *element, char operator) {
     if(element->type == 1) {
       return element->number;
     } else {
-      return compute_node(element->node);
+      return compute_node_element(element->node->element,
+                                  element->node->operator);
     }
   } else {
     if(element->type == 1) {
-      //return element->number + compute_node_element(element->next);
-      return compute(operator, element->number, compute_node_element(element->next, operator));
+      return compute(operator,
+                     element->number,
+                     compute_node_element(element->next,
+                                          operator));
     } else {
-      //return compute_node(element->node) + compute_node_element(element->next);
-      return compute(operator, compute_node(element->node), compute_node_element(element->next, operator));
+      return compute(operator,
+                     compute_node_element(element->node->element,
+                                          element->node->operator),
+                     compute_node_element(element->next,
+                                          operator));
     }
   }
 }
