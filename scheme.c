@@ -124,6 +124,41 @@ int add_element(ELEMENT *element) {
   }
 }
 
+int compute(char operator, int operand1, int operand2) {
+  switch(operator) {
+  case '+':
+    return operand1 + operand2;
+  case '-':
+    return operand1 - operand2;
+  case '*':
+    return operand1 * operand2;
+  case '/':
+    return operand1 / operand2;
+  }
+}
+
+int compute_node_element(ELEMENT *element, char operator) {
+  if(element->next == NULL) {
+    if(element->type == 1) {
+      return element->number;
+    } else {
+      return compute_node(element->node);
+    }
+  } else {
+    if(element->type == 1) {
+      //return element->number + compute_node_element(element->next);
+      return compute(operator, element->number, compute_node_element(element->next, operator));
+    } else {
+      //return compute_node(element->node) + compute_node_element(element->next);
+      return compute(operator, compute_node(element->node), compute_node_element(element->next, operator));
+    }
+  }
+}
+
+int compute_node(NODE *node) {
+  return compute_node_element(node->element, node->operator);
+}
+
 int read(FILE *in) {
   struct AST ast;
   int c;
@@ -206,7 +241,8 @@ int main(void) {
     //printf("c is %c = %d\n", c, c);
     if(c == '(') {
       NODE * root = parse(stdin, NULL);
-      int result = add_element(root->element);
+      //int result = add_element(root->element);
+      int result = compute_node(root);
 
       c = getc(stdin);
       if(c == 10) {
