@@ -5,6 +5,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+//#define START 0
+#define IN 1 // inside a word
+#define OUT 0 // outside a word
+
 typedef struct ELEMENT {
   int type; //1, number; 2, node
   int number;
@@ -13,38 +17,94 @@ typedef struct ELEMENT {
 } ELEMENT;
 
 typedef struct NODE {
-  char operator; //+ - * /
+  char *operator; //+ - * / and others
   ELEMENT *element;
 } NODE;
 
-int add_element(ELEMENT *element);
-
 //(+ 1 (+ 2 3))
+//(+ 1 (- 3 2) (* 2 3) (/ 6 2))
 NODE *parse(FILE *in, ELEMENT *previous_element) {
   int c;
   int n = 0;
+  int state = OUT;
   NODE *current_node = malloc(sizeof(NODE));
   ELEMENT *current_element;
 
+  char *operator = malloc(10);
+  int i = 0;
+
+  char *number = malloc(10);
+
   while((c = getc(in)) != 10) {
-    //printf("c is %c\n", c);
-    if(c != ' ' && c != ')') {
-      if(n == 0) {
-        current_node->operator = c;
-      } else {
-        current_element = malloc(sizeof(ELEMENT));
-        if(c == '(') {
-          NODE *child = parse(in, current_element);
-          current_element->type = 2;
-          current_element->node = child;
+    printf("c is %c\n", c);
+
+    switch(c) {
+    case ' ':
+      if(state == IN) {
+        if(n == 0) {
+          operator[i] = '\0';
+          current_node->operator = operator;
+          n = n + 1;
+          i = 0;
         } else {
-          //printf("number is %d\n", c - '0');
+          number[i] = '\0';
           current_element->type = 1;
-          current_element->number = c - '0';
+          current_element->number = atoi(number);
 
           if(n == 1) {
             current_node->element = current_element;
           }
+
+          printf("number is %d\n", current_element->number);
+
+          n = n + 1;
+          i = 0;
+        }
+      }
+      state = OUT;
+      break;
+    case ')':
+      previous_element->next = NULL;
+      if(state == IN) {
+        number[i] = '\0';
+        current_element->type = 1;
+        current_element->number = atoi(number);
+
+        printf("number is %d\n", current_element->number);
+
+        if(n == 1) {
+          current_node->element = current_element;
+        }
+
+        n = n + 1;
+        i = 0;
+      }
+      break;
+    default:
+      state = IN;
+
+      if(n == 0) {// operator
+        operator[i] = c;
+
+        i = i + 1;
+      } else {// operand
+        current_element = malloc(sizeof(ELEMENT));
+
+        if(c == '(') {
+          //NODE *child = parse(in, current_element);
+          //current_element->type = 2;
+          //current_element->node = child;
+        } else {
+          //printf("number is %d\n", c - '0');
+          //current_element->type = 1;
+          //current_element->number = c - '0';
+
+          number[i] = c;
+          i = i + 1;
+
+          //if(n == 1) {
+          //  current_node->element = current_element;
+          //}
         }
 
         if(previous_element != NULL) {
@@ -54,12 +114,43 @@ NODE *parse(FILE *in, ELEMENT *previous_element) {
         previous_element = current_element;
       }
 
-      n = n + 1;
-    } else if(c == ')') {
-      //current_element = NULL;
-      previous_element->next = NULL;
-      break;
+      //n = n + 1;
     }
+
+    printf("operator is %s\n", operator);
+
+//    if(c != ' ' && c != ')') {
+//      if(n == 0) {
+//        current_node->operator = c;
+//      } else {
+//        current_element = malloc(sizeof(ELEMENT));
+//        if(c == '(') {
+//          NODE *child = parse(in, current_element);
+//          current_element->type = 2;
+//          current_element->node = child;
+//        } else {
+//          //printf("number is %d\n", c - '0');
+//          current_element->type = 1;
+//          current_element->number = c - '0';
+//
+//          if(n == 1) {
+//            current_node->element = current_element;
+//          }
+//        }
+//
+//        if(previous_element != NULL) {
+//          previous_element->next = current_element;
+//        }
+//
+//        previous_element = current_element;
+//      }
+//
+//      n = n + 1;
+//    } else if(c == ')') {
+//      //current_element = NULL;
+//      previous_element->next = NULL;
+//      break;
+//    }
   }
 
   //printf("the operator of node is %c\n", current_node->operator);
@@ -67,6 +158,7 @@ NODE *parse(FILE *in, ELEMENT *previous_element) {
   //  printf("the type of first element of node is %d\n", current_node->element->type);
   //}
 
+  printf("current node is %p\n", current_node);
   return current_node;
 }
 
@@ -118,11 +210,13 @@ int main(void) {
     //printf("c is %c = %d\n", c, c);
     if(c == '(') {
       NODE * root = parse(stdin, NULL);
-      int result = compute_node_element(root->element, root->operator);
+      printf("root node is %p\n", root);
+      printf("operator is %s\n", root->operator);
+      //int result = compute_node_element(root->element, root->operator);
 
       c = getc(stdin);
       if(c == 10) {
-        printf("%d\n", result);
+        //printf("%d\n", result);
       }
     }
   }
